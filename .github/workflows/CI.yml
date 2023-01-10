@@ -17,8 +17,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.11.0
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: ⎔ Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
@@ -35,10 +40,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.11.0
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Retrieve Git history, needed to verify commits
-      - name: Use Node.js ${{ matrix.node-version }}
+
+      - name: ⎔ Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
@@ -49,16 +59,16 @@ jobs:
         name: Validate all commits from PR
         run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 
-      - name: Linter
+      - name: 🔬 Linter
         run: npm run lint
 
-      - name: Type checking
+      - name: 🔎 Type checking
         run: npm run check-types
 
-      - name: Run unit tests
+      - name: 🃏 Run unit tests
         run: npm run test
 
-      - name: Run e2e tests
+      - name: 🃏 Run e2e tests
         run: npx percy exec -- npm run e2e:headless
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
