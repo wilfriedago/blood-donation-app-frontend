@@ -1,5 +1,5 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: 'https://example.com', // FIXME: Change to the production URL
+  siteUrl: 'https://wilfriedago.github.io/blood-donation-app-frontend/',
   generateRobotsTxt: true,
 };
