@@ -46,3 +46,9 @@ local
 
 # vercel
 .vercel
+
+# environment variables
+.env
+.env.test
+.env.development
+.env.production
