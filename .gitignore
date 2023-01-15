@@ -49,3 +49,6 @@ local
 
 # environment variables
 .env
+.env.test
+.env.development
+.env.production
