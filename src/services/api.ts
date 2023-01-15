@@ -10,6 +10,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 5000,
 });
 
 function getUserData(): {
@@ -92,14 +93,14 @@ const api = {
 
   confirmEmail: async (hash: string) => {
     return request(
-      { method: 'post', url: `/auth/email/confirm/${hash}` },
+      { method: 'post', url: `/auth/email/confirm/`, data: { hash } },
       false
     );
   },
 
   forgotPassword: async (email: string) => {
     return request(
-      { method: 'post', url: `/auth/forgot/password/${email}` },
+      { method: 'post', url: `/auth/forgot/password/`, data: { email } },
       false
     );
   },
@@ -116,6 +117,18 @@ const api = {
       },
       false
     );
+  },
+
+  me: {
+    get: async () => {
+      return request({ method: 'get', url: '/auth/me' });
+    },
+    update: async (data: User) => {
+      return request({ method: 'patch', url: '/auth/me', data });
+    },
+    delete: async () => {
+      return request({ method: 'delete', url: '/auth/me' });
+    },
   },
 
   //! social login

@@ -4,10 +4,11 @@ interface LoginUserDto {
 }
 
 interface RegisterUserDto {
-  email: string;
-  password: string;
   firstName: string;
   lastName: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
 }
 
 export type { LoginUserDto, RegisterUserDto };
