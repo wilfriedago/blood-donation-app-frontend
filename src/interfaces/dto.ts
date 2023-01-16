@@ -11,4 +11,18 @@ interface RegisterUserDto {
   passwordConfirmation: string;
 }
 
-export type { LoginUserDto, RegisterUserDto };
+type ForgotPasswordDto = {
+  email: string;
+};
+
+type ResetPasswordDto = {
+  password: string;
+  passwordConfirmation: string;
+};
+
+export type {
+  ForgotPasswordDto,
+  LoginUserDto,
+  RegisterUserDto,
+  ResetPasswordDto,
+};
