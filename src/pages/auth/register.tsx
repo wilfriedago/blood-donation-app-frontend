@@ -1,18 +1,32 @@
+import { Listbox, Transition } from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
 import router from 'next/router';
 import { signIn } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button, SocialButton } from '@/components';
 import { RegisterUserDto } from '@/interfaces/dto';
 import { AuthLayout, Meta } from '@/layouts';
 import api from '@/services/api';
-import { getPasswordStrength, getProgressBarColor } from '@/utils/functions';
+import {
+  getPasswordStrength,
+  getPasswordStrengthBarColor,
+} from '@/utils/functions';
 
-function Register() {
+const profiles = [
+  { name: 'Donneur' },
+  { name: 'Organisme Social' },
+  { name: 'Représentant Croix Rouge' },
+  { name: 'Hôpital ou Clinique' },
+];
+
+export default function Register() {
   const [loading, setLoading] = useState(false);
-  const [progressBar, setProgressBar] = useState({
+  const [selected, setSelected] = useState(profiles[0]);
+
+  const [passwordStrengthBar, setPasswordStrengthBar] = useState({
     width: 0,
     backgroundColor: '',
   });
@@ -26,7 +40,7 @@ function Register() {
   } = useForm<RegisterUserDto>();
 
   useEffect(() => {
-    router.prefetch('/auth/confirm-email');
+    router.prefetch('/auth/validation-email');
   }, []);
 
   async function onSubmit(formValues: RegisterUserDto) {
@@ -36,7 +50,10 @@ function Register() {
       .registerEmail(formValues)
       .then(() => {
         setLoading(false);
-        router.push('/auth/confirm-email');
+        router.push({
+          pathname: '/auth/validation-email',
+          query: { email: formValues.email },
+        });
       })
       .catch(({ response }) => {
         setLoading(false);
@@ -82,7 +99,7 @@ function Register() {
           </h2>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-white py-8 px-4 shadow-md sm:rounded-lg sm:px-10">
             <form
               className="space-y-6"
               action="#"
@@ -101,8 +118,8 @@ function Register() {
                     {...register('lastName', {
                       required: 'Le nom est requis',
                       maxLength: {
-                        value: 32,
-                        message: 'Le nom doit être inférieur à 32 caractères',
+                        value: 64,
+                        message: 'Le nom doit être inférieur à 64 caractères',
                       },
                     })}
                     type="text"
@@ -111,7 +128,7 @@ function Register() {
                     autoComplete="family-name"
                     aria-describedby="lastName-error"
                     aria-invalid={!!errors?.lastName}
-                    className={`mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                    className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                       errors?.lastName && 'border-red-500'
                     }`}
                   />
@@ -137,9 +154,9 @@ function Register() {
                     {...register('firstName', {
                       required: 'Le prénom est requis',
                       maxLength: {
-                        value: 32,
+                        value: 64,
                         message:
-                          'Le prénom doit être inférieur à 32 caractères',
+                          'Le prénom doit être inférieur à 64 caractères',
                       },
                     })}
                     type="text"
@@ -148,7 +165,7 @@ function Register() {
                     autoComplete="given-name"
                     aria-describedby="firstName-error"
                     aria-invalid={!!errors?.firstName}
-                    className={`mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                    className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                       errors?.firstName && 'border-red-500'
                     }`}
                   />
@@ -183,7 +200,7 @@ function Register() {
                   autoComplete="email"
                   aria-describedby="email-error"
                   aria-invalid={!!errors?.email}
-                  className={`mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                  className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                     errors?.email && 'border-red-500'
                   }`}
                 />
@@ -208,13 +225,13 @@ function Register() {
                   {...register('password', {
                     required: 'Le mot de passe est requis',
                     minLength: {
-                      value: 6,
-                      message: 'Le mot de passe doit contenir 6 caractères',
+                      value: 8,
+                      message: 'Le mot de passe doit contenir 8 caractères',
                     },
                     maxLength: {
-                      value: 32,
+                      value: 64,
                       message:
-                        'Le mot de passe doit contenir 32 caractères au maximum',
+                        'Le mot de passe doit contenir 64 caractères au maximum',
                     },
                   })}
                   id="password"
@@ -222,7 +239,7 @@ function Register() {
                   autoComplete="current-password"
                   aria-describedby="password-error"
                   aria-invalid={!!errors?.password}
-                  className={`mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                  className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                     errors?.password && 'border-red-500'
                   }`}
                 />
@@ -256,9 +273,9 @@ function Register() {
                     onChange(e) {
                       clearErrors('passwordConfirmation');
                       const strength = getPasswordStrength(e.target.value);
-                      setProgressBar({
+                      setPasswordStrengthBar({
                         width: strength,
-                        backgroundColor: getProgressBarColor(strength),
+                        backgroundColor: getPasswordStrengthBarColor(strength),
                       });
                     },
                   })}
@@ -267,7 +284,7 @@ function Register() {
                   autoComplete="current-password"
                   aria-describedby="confirm-password-error"
                   aria-invalid={!!errors?.passwordConfirmation}
-                  className={`mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${
+                  className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                     errors?.passwordConfirmation && 'border-red-500'
                   }`}
                 />
@@ -281,17 +298,83 @@ function Register() {
                   {errors.passwordConfirmation.message}
                 </span>
               )}
-              {progressBar.width !== 0 && (
-                <div className="h-1 w-full rounded-full">
+              {passwordStrengthBar.width !== 0 && (
+                <div className="h-2 w-full rounded-full border border-gray-400">
                   <div
                     className="h-full rounded-full text-center text-xs text-white shadow-inner transition-all duration-500 ease-in-out"
                     style={{
-                      width: `${progressBar.width}%`,
-                      backgroundColor: progressBar.backgroundColor,
+                      width: `${passwordStrengthBar.width}%`,
+                      backgroundColor: passwordStrengthBar.backgroundColor,
                     }}
                   ></div>
                 </div>
               )}
+              <div>
+                <label
+                  htmlFor="confirm-password"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  S&apos;inscris en tant que :
+                </label>
+                <Listbox value={selected} onChange={setSelected}>
+                  <div className="relative z-20">
+                    <Listbox.Button className="mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-start text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm">
+                      <span className="block truncate">{selected?.name}</span>
+                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                        <ChevronUpDownIcon
+                          className="h-5 w-5 text-gray-400"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </Listbox.Button>
+                    <Transition
+                      as={Fragment}
+                      leave="transition ease-in duration-100"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                      <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                        {profiles.map((profile, profileId) => (
+                          <Listbox.Option
+                            key={profileId}
+                            className={({ active }) =>
+                              `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
+                                active
+                                  ? 'bg-indigo-100 text-indigo-900'
+                                  : 'text-gray-900'
+                              }`
+                            }
+                            value={profile}
+                          >
+                            {
+                              // eslint-disable-next-line @typescript-eslint/no-shadow
+                              ({ selected }) => (
+                                <>
+                                  <span
+                                    className={`block truncate ${
+                                      selected ? 'font-medium' : 'font-normal'
+                                    }`}
+                                  >
+                                    {profile.name}
+                                  </span>
+                                  {selected ? (
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600">
+                                      <CheckIcon
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                      />
+                                    </span>
+                                  ) : null}
+                                </>
+                              )
+                            }
+                          </Listbox.Option>
+                        ))}
+                      </Listbox.Options>
+                    </Transition>
+                  </div>
+                </Listbox>
+              </div>
               <div>
                 <Button type="submit" className="mt-4" loading={loading}>
                   {loading ? 'En cours...' : 'Créer un compte'}
@@ -299,13 +382,13 @@ function Register() {
               </div>
             </form>
             <div className="mt-6">
-              <div className="relative">
+              <div className="relative z-10">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="bg-white px-2 text-gray-600">
-                    Ou s&apos;enregistrer avec
+                    Ou s&apos;inscrire avec
                   </span>
                 </div>
               </div>
@@ -342,5 +425,3 @@ function Register() {
     </AuthLayout>
   );
 }
-
-export default Register;
