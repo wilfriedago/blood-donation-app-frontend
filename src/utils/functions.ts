@@ -5,7 +5,7 @@
  * @param strength
  * @returns string
  */
-export function getProgressBarColor(strength: number) {
+export function getPasswordStrengthBarColor(strength: number) {
   if (strength > 100) return '#f00';
 
   if (strength > 80) return '#f80';

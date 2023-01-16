@@ -1,6 +1,6 @@
 import { MainLayout, Meta } from '@/layouts';
 
-const Index = () => {
+export default function Index() {
   return (
     <MainLayout
       meta={
@@ -22,6 +22,4 @@ const Index = () => {
       </div>
     </MainLayout>
   );
-};
-
-export default Index;
+}
