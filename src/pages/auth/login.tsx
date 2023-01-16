@@ -120,9 +120,9 @@ export default function Login() {
                       {...register('password', {
                         required: 'Le mot de passe est requis',
                         maxLength: {
-                          value: 32,
+                          value: 64,
                           message:
-                            'Le mot de passe doit contenir 32 caractères au maximum',
+                            'Le mot de passe doit contenir 64 caractères au maximum',
                         },
                       })}
                       id="password"
