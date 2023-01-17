@@ -1,5 +1,6 @@
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components';
@@ -11,12 +12,19 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     clearErrors,
   } = useForm<ForgotPasswordDto>();
+
+  useEffect(() => {
+    router.prefetch('/auth/login');
+    router.prefetch('/auth/register');
+  });
 
   async function onSubmit(formValues: ForgotPasswordDto) {
     setLoading(true);
@@ -37,7 +45,7 @@ export default function ForgotPassword() {
       }
       nextLink={{
         href: '/auth/register',
-        label: "Vous n'avez pas de compte ? Inscrivez-vous",
+        label: "S'inscrire",
       }}
     >
       {success ? (

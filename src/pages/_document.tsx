@@ -9,7 +9,7 @@ class MyDocument extends Document {
     return (
       <Html lang={AppConfig.locale} className="h-full bg-gray-50">
         <Head />
-        <body className="font-sans text-gray-600 antialiased">
+        <body className="font-sans text-gray-800 antialiased">
           <Main />
           <NextScript />
         </body>
