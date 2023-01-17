@@ -6,6 +6,11 @@ import { signIn } from 'next-auth/react';
 import { Fragment, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import {
+  FACEBOOK_CALLBACK_URL,
+  GITHUB_CALLBACK_URL,
+  GOOGLE_CALLBACK_URL,
+} from '@/AppConfig';
 import { Button, SocialButton } from '@/components';
 import { RegisterUserDto } from '@/interfaces/dto';
 import { MainLayout, Meta } from '@/layouts';
@@ -70,17 +75,17 @@ export default function Register() {
 
   // Facebook Handler function
   async function handleFacebookSignIn() {
-    signIn('facebook', { callbackUrl: 'http://localhost:3000' });
+    signIn('facebook', { callbackUrl: FACEBOOK_CALLBACK_URL });
   }
 
   // Google Handler function
   async function handleGoogleSignIn() {
-    signIn('google', { callbackUrl: 'http://localhost:3000' });
+    signIn('google', { callbackUrl: GOOGLE_CALLBACK_URL });
   }
 
   // Github Login
   async function handleGithubSignIn() {
-    signIn('github', { callbackUrl: 'http://localhost:3000' });
+    signIn('github', { callbackUrl: GITHUB_CALLBACK_URL });
   }
 
   return (
