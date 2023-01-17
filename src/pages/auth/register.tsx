@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 
 import { Button, SocialButton } from '@/components';
 import { RegisterUserDto } from '@/interfaces/dto';
-import { AuthLayout, Meta } from '@/layouts';
+import { MainLayout, Meta } from '@/layouts';
 import api from '@/services/api';
 import {
   getPasswordStrength,
@@ -84,7 +84,7 @@ export default function Register() {
   }
 
   return (
-    <AuthLayout
+    <MainLayout
       meta={
         <Meta
           title="S'enregistrer | Blood Donation App"
@@ -422,6 +422,6 @@ export default function Register() {
           Se connecter
         </Link>
       </div>
-    </AuthLayout>
+    </MainLayout>
   );
 }

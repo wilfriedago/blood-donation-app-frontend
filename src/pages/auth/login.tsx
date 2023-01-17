@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 
 import { Button, SocialButton } from '@/components';
 import type { LoginUserDto } from '@/interfaces/dto';
-import { AuthLayout, Meta } from '@/layouts';
+import { MainLayout, Meta } from '@/layouts';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -56,7 +56,7 @@ export default function Login() {
   }
 
   return (
-    <AuthLayout
+    <MainLayout
       meta={
         <Meta
           title="Se connecter | Blood Donation App"
@@ -196,6 +196,6 @@ export default function Login() {
           </Link>
         </div>
       </div>
-    </AuthLayout>
+    </MainLayout>
   );
 }
