@@ -1,8 +1,8 @@
-import { MainLayout, Meta } from '@/layouts';
+import { DefaultLayout, Meta } from '@/layouts';
 
 export default function Index() {
   return (
-    <MainLayout
+    <DefaultLayout
       meta={
         <Meta
           title="Next.js Boilerplate Presentation"
@@ -20,6 +20,6 @@ export default function Index() {
           </h1>
         </main>
       </div>
-    </MainLayout>
+    </DefaultLayout>
   );
 }
