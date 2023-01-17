@@ -2,6 +2,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from '@heroicons/react/24/solid';
+import { GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -11,12 +12,20 @@ import { ResetPasswordDto } from '@/interfaces/dto';
 import { InfoLayout, Meta } from '@/layouts';
 import api from '@/services/api';
 
-export default function ResetPassword() {
+export default function ResetPassword({ hash }: { hash: string }) {
   const [loading, setLoading] = useState(false);
-  const [hash, setHash] = useState<string | undefined>(undefined);
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>(
     'loading'
   );
+
+  useEffect(() => {
+    if (!hash) setStatus('error');
+
+    return () => {
+      setLoading(false);
+      setStatus('loading');
+    };
+  });
 
   const router = useRouter();
   const {
@@ -27,26 +36,6 @@ export default function ResetPassword() {
     getValues,
     formState: { errors },
   } = useForm<ResetPasswordDto>();
-
-  useEffect(() => {
-    const urlHash = window.location.href.split('/')[5];
-    if (!urlHash || urlHash.length !== 64) setStatus('error');
-
-    // TODO: uncomment this when the function is implemented on the backend
-    /**
-     *api
-      .checkResetPasswordHash(urlHash)
-      .then(() => {
-        setHash(urlHash);
-        setStatus('loading');
-      })
-      .catch(() => {
-        setStatus('error');
-      });
-     */
-
-    setHash(urlHash);
-  }, [hash]);
 
   async function onSubmit(formValues: ResetPasswordDto) {
     setLoading(true);
@@ -67,17 +56,6 @@ export default function ResetPassword() {
       });
   }
 
-  const nextLink =
-    status === 'error'
-      ? {
-          href: '/forgot-password',
-          label: 'Mot de passe oublié ?',
-        }
-      : {
-          href: '/auth/login',
-          label: 'Se connecter',
-        };
-
   return (
     <InfoLayout
       meta={
@@ -86,7 +64,17 @@ export default function ResetPassword() {
           description="Vérifiez votre boîte de réception pour confirmer votre adresse email."
         />
       }
-      nextLink={nextLink}
+      nextLink={
+        status === 'error'
+          ? {
+              href: '/forgot-password',
+              label: 'Mot de passe oublié ?',
+            }
+          : {
+              href: '/auth/login',
+              label: 'Se connecter',
+            }
+      }
     >
       {status === 'loading' && (
         <>
@@ -215,4 +203,16 @@ export default function ResetPassword() {
       )}
     </InfoLayout>
   );
+}
+
+export async function getServerSideProps({ query }: GetServerSidePropsContext) {
+  const { hash } = query;
+
+  if (!hash || hash.length !== 64) return { props: { hash: null } };
+
+  return {
+    props: {
+      hash: hash as string,
+    },
+  };
 }
