@@ -10,9 +10,7 @@ describe('Index page', () => {
     it('should have h1 tag', () => {
       render(<Index />);
 
-      const heading = screen.getByRole('heading', {
-        name: /Boilerplate code/,
-      });
+      const heading = screen.getByRole('heading', { name: /welcome to/i });
 
       expect(heading).toBeInTheDocument();
     });

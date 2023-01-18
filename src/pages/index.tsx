@@ -1,8 +1,8 @@
-import { MainLayout, Meta } from '@/layouts';
+import { DefaultLayout, Meta } from '@/layouts';
 
-const Index = () => {
+export default function Index() {
   return (
-    <MainLayout
+    <DefaultLayout
       meta={
         <Meta
           title="Next.js Boilerplate Presentation"
@@ -20,8 +20,6 @@ const Index = () => {
           </h1>
         </main>
       </div>
-    </MainLayout>
+    </DefaultLayout>
   );
-};
-
-export default Index;
+}

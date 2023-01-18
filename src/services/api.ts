@@ -105,7 +105,7 @@ const api = {
     );
   },
 
-  resetPassword: async (hash: string, password: string) => {
+  resetPassword: async (password: string, hash: string) => {
     return request(
       {
         method: 'post',

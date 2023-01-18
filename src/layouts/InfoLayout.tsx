@@ -14,46 +14,62 @@ export function InfoLayout(props: IMainProps) {
   return (
     <>
       {props.meta}
-      <div className="flex h-screen min-h-full flex-col bg-white pt-16 pb-12">
-        <main className="mx-auto flex w-full max-w-7xl grow flex-col justify-center px-4 sm:px-6 lg:px-8">
-          <div className="flex shrink-0 justify-center">
-            <Link href="/" className="inline-flex">
-              <span className="sr-only">Your Company</span>
-              {/* <Image
-                className="h-12 w-auto"
-                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                alt=""
-                width={48}
-                height={48}
-              /> */}
-            </Link>
-          </div>
+      <div className="mx-auto flex h-screen min-h-full max-w-screen-2xl flex-col py-12">
+        <main className=" flex w-full  grow flex-col justify-center px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center">
-            {props.children}
+            <div className="absolute inset-0 text-slate-900/[0.07] [mask-image:linear-gradient(to_bottom_left,white,transparent,transparent)]">
+              <svg
+                className="absolute inset-0 h-full w-full"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <defs>
+                  <pattern
+                    id="grid-bg"
+                    width="32"
+                    height="32"
+                    patternUnits="userSpaceOnUse"
+                    x="100%"
+                    patternTransform="translate(0 -1)"
+                  >
+                    <path
+                      d="M0 32V.5H32"
+                      fill="none"
+                      stroke="currentColor"
+                    ></path>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid-bg)"></rect>
+              </svg>
+            </div>
+            <div className="relative py-12">
+              <div className="flex max-w-sm flex-col items-center text-center">
+                {props.children}
+              </div>
+            </div>
             {props.nextLink ? (
               <Link
                 href={props.nextLink.href}
-                className="mt-4 text-base font-medium text-indigo-600 hover:text-indigo-500"
+                className="relative mt-2 cursor-pointer text-sm font-medium text-indigo-600 hover:text-indigo-500"
               >
                 {props.nextLink.label}
-                <span aria-hidden="true"> &rarr;</span>
+                <span aria-hidden="true">&nbsp;&rarr;</span>
               </Link>
             ) : (
               <Link
                 href="/"
-                className="mt-4 text-base font-medium text-indigo-600 hover:text-indigo-500"
+                className="relative mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
               >
                 Retour à l&apos;accueil
-                <span aria-hidden="true"> &rarr;</span>
+                <span aria-hidden="true">&nbsp;&rarr;</span>
               </Link>
             )}
           </div>
         </main>
-        <footer className="mx-auto w-full max-w-7xl shrink-0 px-4 sm:px-6 lg:px-8">
+        <footer className="relative mx-auto w-full max-w-7xl shrink-0 px-4 sm:px-6 lg:px-8">
           <nav className="flex justify-center space-x-4">
             <Link
               href="#"
-              className="text-sm font-medium text-gray-500 hover:text-gray-600"
+              className="text-sm font-medium text-gray-600 hover:text-gray-700"
             >
               Contact
             </Link>
@@ -63,7 +79,7 @@ export function InfoLayout(props: IMainProps) {
             />
             <Link
               href="#"
-              className="text-sm font-medium text-gray-500 hover:text-gray-600"
+              className="text-sm font-medium text-gray-600 hover:text-gray-700"
             >
               Privacy
             </Link>
@@ -73,7 +89,7 @@ export function InfoLayout(props: IMainProps) {
             />
             <Link
               href="#"
-              className="text-sm font-medium text-gray-500 hover:text-gray-600"
+              className="text-sm font-medium text-gray-600 hover:text-gray-700"
             >
               Twitter
             </Link>

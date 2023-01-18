@@ -8,13 +8,13 @@ type IMainProps = {
 
 export function AuthLayout(props: IMainProps) {
   return (
-    <div className="mx-auto max-w-screen-2xl text-gray-700 antialiased">
+    <>
       {props.meta}
-      <div className="flex">
-        <div className="flex h-full flex-1 flex-col items-center bg-gray-300 px-4 sm:justify-center md:flex-none md:px-20">
+      <main className="relative mx-auto flex max-w-screen-2xl">
+        <div className="my-8 flex h-full flex-1 flex-col items-center px-4 sm:justify-center sm:px-20 lg:flex-none">
           {props.children}
         </div>
-        <div className="hidden sm:contents lg:relative lg:block lg:flex-1">
+        <div className="hidden lg:relative lg:block lg:flex-1">
           <Image
             className="absolute inset-0 h-full w-full object-cover"
             src="/assets/images/auth-bg.jpg"
@@ -23,7 +23,7 @@ export function AuthLayout(props: IMainProps) {
             height={760}
           />
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

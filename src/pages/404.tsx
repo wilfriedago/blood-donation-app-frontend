@@ -1,26 +1,24 @@
+import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
+
 import { InfoLayout, Meta } from '@/layouts';
 
-const NotFoundPage = () => {
+export default function NotFoundPage() {
   return (
     <InfoLayout
       meta={
         <Meta
           title="Page introuvable | Blood Donation App"
-          description="Désolé, nous n'avons pas pu trouver la page que vous cherchiez."
+          description="Désolé, cette page n'existe pas, ou a été déplacée."
         />
       }
     >
-      <div className="text-center">
-        <p className="text-3xl font-bold text-indigo-600">404</p>
-        <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-          Page introuvable
-        </h1>
-        <p className="mt-2 text-lg text-zinc-500">
-          Désolé, nous n&apos;avons pas pu trouver la page que vous cherchiez.
-        </p>
-      </div>
+      <ExclamationCircleIcon className="h-14 text-indigo-500" />
+      <h1 className="mb-2 text-center text-3xl font-bold text-gray-900">
+        Page introuvable
+      </h1>
+      <p className="text-center text-base">
+        Désolé, cette page n&apos;existe pas, ou a été déplacée.
+      </p>
     </InfoLayout>
   );
-};
-
-export default NotFoundPage;
+}
