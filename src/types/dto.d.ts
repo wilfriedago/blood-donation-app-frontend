@@ -1,15 +1,24 @@
-interface LoginUserDto {
+type LoginUserDto = {
   email: string;
   password: string;
-}
+};
 
-interface RegisterUserDto {
-  firstName: string;
-  lastName: string;
+type UserDto = {
   email: string;
   password: string;
   passwordConfirmation: string;
-}
+  role: number;
+};
+
+type RegisterDonorDto = UserDto & {
+  firstName: string;
+  lastName: string;
+};
+
+type RegisterOrganisationDto = UserDto & {
+  name: string;
+  description?: string;
+};
 
 type ForgotPasswordDto = {
   email: string;
@@ -23,6 +32,7 @@ type ResetPasswordDto = {
 export type {
   ForgotPasswordDto,
   LoginUserDto,
-  RegisterUserDto,
+  RegisterDonorDto,
+  RegisterOrganisationDto,
   ResetPasswordDto,
 };
