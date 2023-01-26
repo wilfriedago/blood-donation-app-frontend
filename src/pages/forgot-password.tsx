@@ -4,15 +4,16 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components';
-import { ForgotPasswordDto } from '@/interfaces/dto';
+import { useApi } from '@/hooks';
 import { InfoLayout, Meta } from '@/layouts';
-import api from '@/services/api';
+import { ForgotPasswordDto } from '@/types/dto';
 
 export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const router = useRouter();
+  const { api } = useApi();
 
   const {
     register,
@@ -29,7 +30,7 @@ export default function ForgotPassword() {
   async function onSubmit(formValues: ForgotPasswordDto) {
     setLoading(true);
 
-    api.forgotPassword(formValues.email).then(() => {
+    await api.forgotPassword(formValues.email).then(() => {
       setLoading(false);
       setSuccess(true);
     });

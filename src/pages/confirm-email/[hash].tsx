@@ -4,8 +4,8 @@ import {
 } from '@heroicons/react/20/solid';
 import { GetServerSidePropsContext } from 'next';
 
+import { useApi } from '@/hooks';
 import { InfoLayout, Meta } from '@/layouts';
-import api from '@/services/api';
 
 export default function ConfirmEmail({ status }: { status: string }) {
   return (
@@ -60,6 +60,8 @@ export default function ConfirmEmail({ status }: { status: string }) {
 
 export async function getServerSideProps({ query }: GetServerSidePropsContext) {
   const { hash } = query;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { api } = useApi();
 
   return api
     .confirmEmail(hash as string)

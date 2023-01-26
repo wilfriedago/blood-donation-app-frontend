@@ -9,11 +9,10 @@ import {
   GITHUB_SECRET,
   GOOGLE_ID,
   GOOGLE_SECRET,
+  NEXT_PUBLIC_API_BASE_URL,
   NEXT_PUBLIC_NODE_ENV,
-  SECRET,
 } from '@/AppConfig';
-import type { LoginUserDto } from '@/interfaces/dto';
-import api from '@/services/api';
+import type { LoginUserDto } from '@/types/dto';
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options

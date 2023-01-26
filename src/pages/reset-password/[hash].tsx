@@ -3,20 +3,20 @@ import {
   ExclamationCircleIcon,
 } from '@heroicons/react/24/solid';
 import { GetServerSidePropsContext } from 'next';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components';
-import { ResetPasswordDto } from '@/interfaces/dto';
+import { useApi } from '@/hooks';
 import { InfoLayout, Meta } from '@/layouts';
-import api from '@/services/api';
+import { ResetPasswordDto } from '@/types/dto';
 
 export default function ResetPassword({ hash }: { hash: string }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>(
     'loading'
   );
+  const { api } = useApi();
 
   useEffect(() => {
     if (!hash) setStatus('error');
@@ -27,12 +27,12 @@ export default function ResetPassword({ hash }: { hash: string }) {
     };
   });
 
-  const router = useRouter();
   const {
     register,
     handleSubmit,
     setError,
     clearErrors,
+    reset,
     getValues,
     formState: { errors },
   } = useForm<ResetPasswordDto>();
@@ -40,15 +40,13 @@ export default function ResetPassword({ hash }: { hash: string }) {
   async function onSubmit(formValues: ResetPasswordDto) {
     setLoading(true);
 
-    api
+    await api
       .resetPassword(formValues.password, hash as string)
       .then(() => {
         setLoading(false);
         setStatus('success');
 
-        setTimeout(() => {
-          router.push('/auth/login');
-        }, 10000);
+        reset();
       })
       .catch(() => {
         setLoading(false);

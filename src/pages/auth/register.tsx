@@ -12,78 +12,119 @@ import {
   GOOGLE_CALLBACK_URL,
 } from '@/AppConfig';
 import { Button, SocialButton } from '@/components';
-import { RegisterUserDto } from '@/interfaces/dto';
+import { useApi } from '@/hooks';
 import { MainLayout, Meta } from '@/layouts';
-import api from '@/services/api';
+import { RegisterDonorDto, RegisterOrganisationDto } from '@/types/dto';
 import {
   getPasswordStrength,
   getPasswordStrengthBarColor,
 } from '@/utils/functions';
 
-const profiles = [
-  { name: 'Donneur' },
-  { name: 'Organisme Social' },
-  { name: 'Représentant Croix Rouge' },
-  { name: 'Hôpital ou Clinique' },
+// FIXME: Fetch roles from API
+const roles = [
+  { id: 2, name: 'Sauveur de vie' },
+  { id: 3, name: 'Hôpital ou Clinique' },
+  { id: 4, name: 'Organisme de collecte' },
 ];
+
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 export default function Register() {
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState(profiles[0]);
-
+  const [selectedRole, setSelectedRole] = useState(roles[0]);
   const [passwordStrengthBar, setPasswordStrengthBar] = useState({
     width: 0,
     backgroundColor: '',
   });
+
   const {
     register,
+    unregister,
     handleSubmit,
     setError,
     clearErrors,
+    reset,
     getValues,
+    setValue,
     formState: { errors },
-  } = useForm<RegisterUserDto>();
+  } = useForm<RegisterOrganisationDto & RegisterDonorDto>();
+
+  const { api } = useApi();
 
   useEffect(() => {
     router.prefetch('/auth/validation-email');
+    setValue('role', selectedRole?.id as number);
   }, []);
 
-  async function onSubmit(formValues: RegisterUserDto) {
+  function handleChange(selected: typeof roles[0]) {
+    reset();
+    setSelectedRole(selected);
+    setValue('role', selected.id);
+
+    setPasswordStrengthBar({
+      width: 0,
+      backgroundColor: '',
+    });
+
+    if (selected.id === 2) {
+      unregister('name');
+      unregister('description');
+    }
+
+    if (selected.id === 3 || selected.id === 4) {
+      unregister('firstName');
+      unregister('lastName');
+    }
+  }
+
+  async function onSubmit(
+    formValues: RegisterOrganisationDto | RegisterDonorDto
+  ) {
     setLoading(true);
 
     await api
       .registerEmail(formValues)
       .then(() => {
         setLoading(false);
+        reset();
         router.push({
-          pathname: '/auth/validation-email',
+          pathname: '/validation-email',
           query: { email: formValues.email },
         });
       })
       .catch(({ response }) => {
         setLoading(false);
+
         if (response?.data?.errors) {
           const { data } = response;
 
-          Object.keys(data.errors).forEach((key: string) =>
-            // @ts-ignore
-            setError(key, { message: data.errors[key] })
-          );
+          Object.keys(data.errors).forEach((key: string) => {
+            type ErrorKeys =
+              | 'email'
+              | 'password'
+              | 'passwordConfirmation'
+              | 'role'
+              | 'name'
+              | 'description'
+              | 'firstName'
+              | 'lastName';
+
+            setError(key as ErrorKeys, { message: data.errors[key] });
+          });
         }
       });
   }
 
-  // Facebook Handler function
   async function handleFacebookSignIn() {
     signIn('facebook', { callbackUrl: FACEBOOK_CALLBACK_URL });
   }
 
-  // Google Handler function
   async function handleGoogleSignIn() {
     signIn('google', { callbackUrl: GOOGLE_CALLBACK_URL });
   }
 
-  // Github Login
   async function handleGithubSignIn() {
     signIn('github', { callbackUrl: GITHUB_CALLBACK_URL });
   }
@@ -111,86 +152,262 @@ export default function Register() {
               method="POST"
               onSubmit={handleSubmit(onSubmit)}
             >
-              <div className="flex gap-x-2">
-                <div>
-                  <label
-                    htmlFor="lastName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Nom
-                  </label>
-                  <input
-                    {...register('lastName', {
-                      required: 'Le nom est requis',
-                      maxLength: {
-                        value: 64,
-                        message: 'Le nom doit être inférieur à 64 caractères',
-                      },
-                    })}
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    autoComplete="family-name"
-                    aria-describedby="lastName-error"
-                    aria-invalid={!!errors?.lastName}
-                    className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
-                      errors?.lastName && 'border-red-500'
-                    }`}
-                  />
-                  {errors?.lastName && (
-                    <span
-                      role="alert"
-                      id="lastName-error"
-                      className="text-xs text-red-500"
-                    >
-                      {errors.lastName.message}
-                    </span>
-                  )}
-                </div>
+              <div>
+                <Listbox
+                  value={selectedRole}
+                  disabled={loading}
+                  onChange={handleChange}
+                >
+                  {({ open }) => (
+                    <>
+                      <Listbox.Label className="block text-sm font-medium text-gray-700">
+                        S&apos;inscris en tant que :
+                      </Listbox.Label>
+                      <div className="relative mt-1">
+                        <Listbox.Button className="relative w-full cursor-pointer rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm">
+                          <span className="block truncate">
+                            {selectedRole?.name}
+                          </span>
+                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronUpDownIcon
+                              className="h-5 w-5 text-gray-400"
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </Listbox.Button>
 
-                <div>
-                  <label
-                    htmlFor="firstName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Prénom
-                  </label>
-                  <input
-                    {...register('firstName', {
-                      required: 'Le prénom est requis',
-                      maxLength: {
-                        value: 64,
-                        message:
-                          'Le prénom doit être inférieur à 64 caractères',
-                      },
-                    })}
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    autoComplete="given-name"
-                    aria-describedby="firstName-error"
-                    aria-invalid={!!errors?.firstName}
-                    className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
-                      errors?.firstName && 'border-red-500'
-                    }`}
-                  />
-                  {errors?.firstName && (
-                    <span
-                      role="alert"
-                      id="firstName-error"
-                      className="text-xs text-red-500"
-                    >
-                      {errors.firstName.message}
-                    </span>
+                        <Transition
+                          show={open}
+                          as={Fragment}
+                          leave="transition ease-in duration-100"
+                          leaveFrom="opacity-100"
+                          leaveTo="opacity-0"
+                        >
+                          <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                            {roles.map((role, index) => (
+                              <Listbox.Option
+                                key={index}
+                                className={({ active }) =>
+                                  classNames(
+                                    active
+                                      ? 'text-white bg-indigo-600'
+                                      : 'text-gray-900',
+                                    'relative cursor-pointer select-none py-2 pl-8 pr-4'
+                                  )
+                                }
+                                value={role}
+                              >
+                                {({ selected, active }) => (
+                                  <>
+                                    <span
+                                      className={classNames(
+                                        selected
+                                          ? 'font-semibold'
+                                          : 'font-normal',
+                                        'block truncate'
+                                      )}
+                                    >
+                                      {role.name}
+                                    </span>
+                                    {selected ? (
+                                      <span
+                                        className={classNames(
+                                          active
+                                            ? 'text-white'
+                                            : 'text-indigo-600',
+                                          'absolute inset-y-0 left-0 flex items-center pl-1.5'
+                                        )}
+                                      >
+                                        <CheckIcon
+                                          className="h-5 w-5"
+                                          aria-hidden="true"
+                                        />
+                                      </span>
+                                    ) : null}
+                                  </>
+                                )}
+                              </Listbox.Option>
+                            ))}
+                          </Listbox.Options>
+                        </Transition>
+                      </div>
+                    </>
                   )}
-                </div>
+                </Listbox>
               </div>
+
+              {selectedRole?.id === 2 && (
+                <div className="flex gap-x-2">
+                  <div>
+                    <label
+                      htmlFor="lastName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Nom
+                      <span className="text-red-500">&nbsp;*</span>
+                    </label>
+                    <input
+                      {...register('lastName', {
+                        required: 'Le nom est requis',
+                        maxLength: {
+                          value: 64,
+                          message: 'Le nom doit être inférieur à 64 caractères',
+                        },
+                      })}
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      autoComplete="family-name"
+                      aria-describedby="lastName-error"
+                      aria-invalid={!!errors?.lastName}
+                      readOnly={loading}
+                      className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
+                        errors?.lastName && 'border-red-500'
+                      }`}
+                    />
+                    {errors?.lastName && (
+                      <span
+                        role="alert"
+                        id="lastName-error"
+                        className="text-xs text-red-500"
+                      >
+                        {errors.lastName.message}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="firstName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Prénom
+                      <span className="text-red-500">&nbsp;*</span>
+                    </label>
+                    <input
+                      {...register('firstName', {
+                        required: 'Le prénom est requis',
+                        maxLength: {
+                          value: 64,
+                          message:
+                            'Le prénom doit être inférieur à 64 caractères',
+                        },
+                      })}
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      autoComplete="given-name"
+                      aria-describedby="firstName-error"
+                      aria-invalid={!!errors?.firstName}
+                      readOnly={loading}
+                      className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
+                        errors?.firstName && 'border-red-500'
+                      }`}
+                    />
+                    {errors?.firstName && (
+                      <span
+                        role="alert"
+                        id="firstName-error"
+                        className="text-xs text-red-500"
+                      >
+                        {errors.firstName.message}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {selectedRole?.id !== 2 && (
+                <>
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Nom de l&apos;organisation
+                      <span className="text-red-500">&nbsp;*</span>
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        {...register('name', {
+                          required: "Le nom de l'organisation est requis",
+                          maxLength: {
+                            value: 512,
+                            message:
+                              'Le nom de l&apos;organisation doit être inférieur à 512 caractères',
+                          },
+                        })}
+                        type="text"
+                        id="name"
+                        name="name"
+                        autoComplete="organization"
+                        aria-describedby="name-error"
+                        aria-invalid={!!errors?.name}
+                        readOnly={loading}
+                        className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
+                          errors?.name && 'border-red-500'
+                        }`}
+                      />
+                      {errors?.name && (
+                        <span
+                          role="alert"
+                          id="name-error"
+                          className="text-xs text-red-500"
+                        >
+                          {errors.name.message}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Description
+                    </label>
+                    <div className="mt-1 sm:col-span-2 sm:mt-0">
+                      <textarea
+                        {...register('description', {
+                          maxLength: {
+                            value: 2048,
+                            message:
+                              'La description doit être inférieure à 2048 caractères',
+                          },
+                        })}
+                        id="description"
+                        name="description"
+                        rows={3}
+                        aria-describedby="description-error"
+                        aria-invalid={!!errors?.description}
+                        readOnly={loading}
+                        className={`mt-1 block h-20 w-full appearance-none rounded-md bg-white px-3 py-2 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
+                          errors?.description && 'border-red-500'
+                        }`}
+                      />
+                      {errors?.description && (
+                        <span
+                          role="alert"
+                          id="description-error"
+                          className="text-xs text-red-500"
+                        >
+                          {errors.description.message}
+                        </span>
+                      )}
+                      <p className="mt-2 text-sm text-gray-500">
+                        Décrivez brièvement votre organisation.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div>
                 <label
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Adresse Email
+                  <span className="text-red-500">&nbsp;*</span>
                 </label>
                 <input
                   {...register('email', {
@@ -205,6 +422,7 @@ export default function Register() {
                   autoComplete="email"
                   aria-describedby="email-error"
                   aria-invalid={!!errors?.email}
+                  readOnly={loading}
                   className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                     errors?.email && 'border-red-500'
                   }`}
@@ -219,12 +437,14 @@ export default function Register() {
                   {errors.email.message}
                 </span>
               )}
+
               <div>
                 <label
                   htmlFor="password"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Mot de passe
+                  <span className="text-red-500">&nbsp;*</span>
                 </label>
                 <input
                   {...register('password', {
@@ -244,6 +464,7 @@ export default function Register() {
                   autoComplete="current-password"
                   aria-describedby="password-error"
                   aria-invalid={!!errors?.password}
+                  readOnly={loading}
                   className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                     errors?.password && 'border-red-500'
                   }`}
@@ -258,12 +479,14 @@ export default function Register() {
                   {errors.password.message}
                 </span>
               )}
+
               <div>
                 <label
                   htmlFor="confirm-password"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Confirmer le mot de passe
+                  <span className="text-red-500">&nbsp;*</span>
                 </label>
                 <input
                   {...register('passwordConfirmation', {
@@ -289,6 +512,7 @@ export default function Register() {
                   autoComplete="current-password"
                   aria-describedby="confirm-password-error"
                   aria-invalid={!!errors?.passwordConfirmation}
+                  readOnly={loading}
                   className={`mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm ${
                     errors?.passwordConfirmation && 'border-red-500'
                   }`}
@@ -303,6 +527,7 @@ export default function Register() {
                   {errors.passwordConfirmation.message}
                 </span>
               )}
+
               {passwordStrengthBar.width !== 0 && (
                 <div className="h-2 w-full rounded-full border border-gray-400">
                   <div
@@ -314,72 +539,6 @@ export default function Register() {
                   ></div>
                 </div>
               )}
-              <div>
-                <label
-                  htmlFor="confirm-password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  S&apos;inscris en tant que :
-                </label>
-                <Listbox value={selected} onChange={setSelected}>
-                  <div className="relative z-20">
-                    <Listbox.Button className="mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-start text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm">
-                      <span className="block truncate">{selected?.name}</span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        <ChevronUpDownIcon
-                          className="h-5 w-5 text-gray-400"
-                          aria-hidden="true"
-                        />
-                      </span>
-                    </Listbox.Button>
-                    <Transition
-                      as={Fragment}
-                      leave="transition ease-in duration-100"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
-                        {profiles.map((profile, profileId) => (
-                          <Listbox.Option
-                            key={profileId}
-                            className={({ active }) =>
-                              `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                active
-                                  ? 'bg-indigo-100 text-indigo-900'
-                                  : 'text-gray-900'
-                              }`
-                            }
-                            value={profile}
-                          >
-                            {
-                              // eslint-disable-next-line @typescript-eslint/no-shadow
-                              ({ selected }) => (
-                                <>
-                                  <span
-                                    className={`block truncate ${
-                                      selected ? 'font-medium' : 'font-normal'
-                                    }`}
-                                  >
-                                    {profile.name}
-                                  </span>
-                                  {selected ? (
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600">
-                                      <CheckIcon
-                                        className="h-5 w-5"
-                                        aria-hidden="true"
-                                      />
-                                    </span>
-                                  ) : null}
-                                </>
-                              )
-                            }
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Transition>
-                  </div>
-                </Listbox>
-              </div>
               <div>
                 <Button type="submit" className="mt-4" loading={loading}>
                   {loading ? 'En cours...' : 'Créer un compte'}
