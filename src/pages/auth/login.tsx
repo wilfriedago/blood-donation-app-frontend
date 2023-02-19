@@ -1,63 +1,64 @@
+import axios from 'axios';
+import { withIronSessionSsr } from 'iron-session/next';
+import Cookies from 'js-cookie';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import {
-  FACEBOOK_CALLBACK_URL,
-  GITHUB_CALLBACK_URL,
-  GOOGLE_CALLBACK_URL,
-} from '@/AppConfig';
-import { Button, SocialButton } from '@/components';
-import type { LoginUserDto } from '@/interfaces/dto';
+import Logo from '@/assets/icons/logo-blood-donation.png';
+import { Button, SocialButton } from '@/components/Buttons';
+import { InputField } from '@/components/Fields';
+import { sessionOptions } from '@/config';
 import { MainLayout, Meta } from '@/layouts';
+import type { LoginUserDto } from '@/types/dto';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginUserDto>();
-
   useEffect(() => {
     router.prefetch('/profile');
   }, []);
 
+  const { control, handleSubmit, setError } = useForm<LoginUserDto>();
+
   async function onSubmit(formValues: LoginUserDto) {
     setLoading(true);
 
-    const result = await signIn('credentials', {
-      ...formValues,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setLoading(false);
-    }
-
-    if (result?.ok) {
-      setLoading(false);
-      router.push('/profile');
-    }
+    axios
+      .post('/api/auth/login', formValues)
+      .then(({ data }) => {
+        Cookies.set('auth.jwt', data.token, {
+          expires: new Date(data.exp * 1000),
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+        });
+        router.push('/profile');
+      })
+      .catch(() =>
+        setError('password', {
+          type: 'manual',
+          message: 'Adresse email ou mot de passe incorrect',
+        })
+      )
+      .finally(() => setLoading(false));
   }
 
   // Facebook Handler function
-  async function handleFacebookSignin() {
-    signIn('facebook', { callbackUrl: FACEBOOK_CALLBACK_URL });
+  async function handleFacebookSignIn() {
+    //
   }
 
   // Google Handler function
-  async function handleGoogleSignin() {
-    signIn('google', { callbackUrl: GOOGLE_CALLBACK_URL });
+  async function handleGoogleSignIn() {
+    //
   }
 
   // Github Login
-  async function handleGithubSignin() {
-    signIn('github', { callbackUrl: GITHUB_CALLBACK_URL });
+  async function handleGithubSignIn() {
+    //
   }
 
   return (
@@ -69,138 +70,133 @@ export default function Login() {
         />
       }
     >
-      <div className="h-full">
-        <div className="flex flex-col justify-center sm:px-6 lg:px-8">
-          <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
-              Connectez-vous
-            </h2>
-          </div>
-          <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-            <div className="bg-white py-8 px-4 shadow-md sm:rounded-lg sm:px-10">
-              <form
-                className="space-y-6"
-                action="#"
-                method="POST"
-                onSubmit={handleSubmit(onSubmit)}
-              >
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Adresse Email
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      {...register('email', {
-                        required: "L'Adresse email est requis",
-                        pattern: {
-                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                          message: 'Adresse email invalide',
-                        },
-                      })}
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      aria-invalid={errors?.email ? 'true' : 'false'}
-                      className="mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-                {errors?.email && (
-                  <span role="alert" className="text-xs text-red-500">
-                    {errors.email.message}
-                  </span>
-                )}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Mot de passe
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      {...register('password', {
-                        required: 'Le mot de passe est requis',
-                        maxLength: {
-                          value: 64,
-                          message:
-                            'Le mot de passe doit contenir 64 caractères au maximum',
-                        },
-                      })}
-                      id="password"
-                      type="password"
-                      autoComplete="current-password"
-                      aria-invalid={errors?.password ? 'true' : 'false'}
-                      className="mt-1 block h-10 w-full appearance-none rounded-md bg-white px-3 text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-                {errors?.password && (
-                  <span role="alert" className="text-xs text-red-500">
-                    {errors.password.message}
-                  </span>
-                )}
-                <div className="flex items-center justify-between">
-                  <Link
-                    href="/forgot-password"
-                    className="border-none text-sm font-medium text-indigo-600 hover:text-indigo-800"
-                  >
-                    Mot de passe oublié ?
-                  </Link>
-                </div>
-                <div>
-                  <Button type="submit" className="mt-4" loading={loading}>
-                    {loading ? 'Connexion...' : 'Se connecter'}
-                  </Button>
-                </div>
-              </form>
-              <div className="mt-6">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-400" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-white px-2 text-gray-600">
-                      Ou se connecter avec
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-6 grid grid-cols-3 gap-3">
-                  <SocialButton
-                    onClick={handleFacebookSignin}
-                    title="Facebook"
-                    icon="facebook"
-                  />
-                  <SocialButton
-                    onClick={handleGoogleSignin}
-                    title="Google"
-                    icon="google"
-                  />
-                  <SocialButton
-                    onClick={handleGithubSignin}
-                    title="Github"
-                    icon="github"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="mt-4 text-center text-sm tracking-tight text-gray-900">
-          <span className="px-2 text-gray-600">
-            Vous n&apos;avez pas de compte ?
-          </span>
-          <Link
-            href="/auth/register"
-            className="font-medium text-indigo-600 hover:text-indigo-800"
-          >
-            Créer un compte
-          </Link>
+      <div className="flex flex-col">
+        <Link href="/" aria-label="Home" className="w-fit">
+          <Image
+            src={Logo}
+            alt="Blood Donation App Logo"
+            width={70}
+            height={70}
+            unoptimized
+          />
+        </Link>
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Connectez-vous à votre compte
+          </h2>
+          <p className="mt-2 text-sm text-gray-700">
+            Vous n&apos;avez pas de compte ?&nbsp;
+            <Link
+              href="/auth/register"
+              className="font-medium text-rose-600 hover:underline"
+            >
+              Inscrivez-vous
+            </Link>
+            .
+          </p>
         </div>
       </div>
+      <form
+        className="mt-10 grid grid-cols-1 gap-y-6"
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <InputField
+          control={control}
+          id="email"
+          type="email"
+          name="email"
+          label="Adresse email"
+          readOnly={loading}
+          required
+          rules={{
+            required: "Veuillez renseigner l'adresse email.",
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: 'Veuillez renseigner une adresse email valide.',
+            },
+          }}
+        />
+
+        <InputField
+          control={control}
+          id="password"
+          type="password"
+          name="password"
+          label="Mot de passe"
+          readOnly={loading}
+          required
+          rules={{
+            required: 'Veuillez renseigner le mot de passe.',
+          }}
+        />
+
+        <div className="flex items-center justify-between">
+          <Link
+            href="/auth/forgot-password"
+            className="border-none text-sm font-medium text-rose-600 hover:text-rose-800"
+          >
+            Mot de passe oublié ?
+          </Link>
+        </div>
+        <div>
+          <Button
+            type="submit"
+            variant="solid"
+            color="rose"
+            loading={loading}
+            className="flex w-full items-center justify-center"
+          >
+            <span>{loading ? 'Connexion...' : 'Se connecter'}</span>
+          </Button>
+        </div>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-400" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-2 text-gray-600">
+              Ou connectez-vous avec
+            </span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <SocialButton
+            onClick={handleFacebookSignIn}
+            title="Facebook"
+            icon="facebook"
+          />
+          <SocialButton
+            onClick={handleGoogleSignIn}
+            title="Google"
+            icon="google"
+          />
+          <SocialButton
+            onClick={handleGithubSignIn}
+            title="Github"
+            icon="github"
+          />
+        </div>
+      </form>
     </MainLayout>
   );
 }
+
+export const getServerSideProps = withIronSessionSsr(async ({ req, res }) => {
+  const { data } = req.session;
+  if (data && data.isLoggedIn) {
+    res.setHeader('location', '/profile');
+    res.statusCode = 302;
+    res.end();
+    return {
+      props: {
+        data,
+      },
+    };
+  }
+
+  return {
+    props: {
+      data: {},
+    },
+  };
+}, sessionOptions);
